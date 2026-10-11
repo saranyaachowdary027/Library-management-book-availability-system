@@ -6,18 +6,19 @@ The system solves the problem by providing quick and clear information about boo
 
 ![Book Availability](./reports/book_availability.png)
 
+
 Popular Books
 
-"Popular Books" (reports/popular_books.png)
+"Popular Books" (./reports/popular_books.png)
 
 Book Category Distribution
 
-"Book Category Distribution" (reports/book_category.png)
+"Book Category Distribution" (./reports/book_category.png)
 
 Borrowing Duration
 
-"Borrowing Duration" (reports/borrowing_duration.png)
+"Borrowing Duration" (./reports/borrowing_duration.png)
 
 Reservation Status
 
-"Reservation Status" (reports/reservation_status.png)
+"Reservation Status" (./reports/reservation_status.png)
