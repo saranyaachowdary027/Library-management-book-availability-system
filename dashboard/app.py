@@ -51,7 +51,7 @@ if filter_column != "None":
     selected_values = st.sidebar.multiselect(
         f"Select {filter_column} values",
         values,
-        default=values
+        default=[]
     )
     filtered_df = filtered_df[
         filtered_df[filter_column].astype(str).isin(selected_values)
