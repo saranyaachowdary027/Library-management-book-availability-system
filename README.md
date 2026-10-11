@@ -2,9 +2,9 @@
 The system solves the problem by providing quick and clear information about book availability
 📊 Library Data Visualizations
 
-Book Availability
+### Book Availability
 
-"Book Availability" (reports/book_availability.png)
+![Book Availability](./reports/book_availability.png)
 
 Popular Books
 
