@@ -1,0 +1,19 @@
+Library Management Book Availability System — Missing Items Checklist
+
+Verified included in the submitted project ZIP:
+[x] Dataset — data/raw/library_datasets.csv (matches the supplied original Kaggle CSV)
+[x] clean_dataset — data/processed/library_datasets_cleaned.csv
+
+Required items not found in the uploaded project ZIP:
+[ ] Proposal
+[ ] data_cleaning.py
+[ ] Data_analysis.py
+[ ] Data_visualisation.py
+[ ] Dashboard.pbix
+
+Related files present but not an exact match to the requested filenames:
+- notebooks/analyze_data.py
+- notebooks/visualize_data.py
+- reports/02_data_cleaning.md
+
+The project files were preserved as provided. The related files above were not renamed or presented as the missing deliverables.
