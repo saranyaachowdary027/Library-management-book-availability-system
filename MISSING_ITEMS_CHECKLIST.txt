@@ -1,19 +1,15 @@
-Library Management Book Availability System — Missing Items Checklist
+Library Management Book Availability System — Final Submission Checklist
 
-Verified included in the submitted project ZIP:
-[x] Dataset — data/raw/library_datasets.csv (matches the supplied original Kaggle CSV)
-[x] clean_dataset — data/processed/library_datasets_cleaned.csv
+Present in this project folder:
+[x] Project proposal — PROJECT_PROPOSAL.md
+[x] Original dataset — data/raw/library_datasets.csv
+[x] Data cleaning script — data_cleaning.py
+[x] Cleaned dataset — data/processed/library_datasets_cleaned.csv
+[x] Data analysis script — Data_analysis.py
+[x] Data visualization script — Data_visualisation.py
+[x] Interactive dashboard source — dashboard/
 
-Required items not found in the uploaded project ZIP:
-[ ] Proposal
-[ ] data_cleaning.py
-[ ] Data_analysis.py
-[ ] Data_visualisation.py
-[ ] Dashboard.pbix
+Still missing:
+[ ] Dashboard.pbix — no Power BI Desktop .pbix file was included in the supplied project. The Streamlit dashboard source is present, but it is not a Power BI file.
 
-Related files present but not an exact match to the requested filenames:
-- notebooks/analyze_data.py
-- notebooks/visualize_data.py
-- reports/02_data_cleaning.md
-
-The project files were preserved as provided. The related files above were not renamed or presented as the missing deliverables.
+Do not treat the Streamlit dashboard as a substitute for Dashboard.pbix if the classroom checklist specifically requires the Power BI file.

@@ -1,5 +1,31 @@
 # Library-management-book-availability-system
-The system solves the problem by providing quick and clear information about book availability
+
+The system provides information about book availability using the library inventory and loan records.
+
+## Dataset workflow
+
+The source CSV is preserved at `data/raw/library_datasets.csv`. From the project root, install the packages in `requirements.txt`, then run:
+
+```bash
+python data_cleaning.py
+python Data_analysis.py
+python Data_visualisation.py
+```
+
+The cleaning script writes `data/processed/library_datasets_cleaned.csv`. Analysis results and generated charts are saved under `reports/`.
+
+## Dashboard
+
+The interactive dashboard source is in `dashboard/`. The project also includes its API and SQLite database source. A Power BI `.pbix` file was not supplied; see `MISSING_ITEMS_CHECKLIST.txt`.
+
+## Project documentation
+
+- `PROJECT_PROPOSAL.md` — project proposal
+- `reports/01_data_collection.md` — dataset source and collection notes
+- `reports/02_data_cleaning.md` — data cleaning notes
+- `MISSING_ITEMS_CHECKLIST.txt` — final classroom checklist
+
+## Existing visualizations
 📊 Library Data Visualizations
 
 ### Book Availability
