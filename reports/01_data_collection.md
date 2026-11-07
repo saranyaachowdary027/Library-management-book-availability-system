@@ -24,3 +24,18 @@ The original dataset was collected and stored separately from the cleaned datase
 ## Outcome
 The dataset is available for inspection, cleaning, analysis, visualization, and interactive dashboard development.
 This step collects library book data, checks for missing values and duplicates, and saves the cleaned dataset for further analysis.git
+## Dataset Collection Details
+
+- Source: Kaggle
+- Original file: library_datasets.csv
+- Storage location: data/raw/
+- Format: CSV
+- Purpose: Analyze book borrowing, returns, reservations, and availability.
+
+## Collection Process
+
+1. Identified a suitable library management dataset on Kaggle.
+2. Downloaded the original CSV dataset.
+3. Stored the original dataset in data/raw/.
+4. Preserved the original dataset for reference.
+5. Used the dataset for cleaning, analysis, visualization, and dashboard development.git 
