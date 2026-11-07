@@ -1,0 +1,97 @@
+LIBRARY MANAGEMENT BOOK AVAILABILITY SYSTEM — DATA ANALYSIS
+
+Records: 1000
+Columns: 9
+Distinct book IDs: 1000
+Distinct user IDs: 1000
+
+Records by book category:
+  art: 208
+  science: 207
+  non-fiction: 206
+  history: 198
+  fiction: 181
+
+Reservation status counts:
+  True: 507
+  False: 493
+
+Overdue status:
+  Records marked overdue (value 1): 627
+  Records with a usable overdue value: 1000
+
+Borrowing duration (returned loans only):
+  Loans with valid duration: 1000
+  Mean days: 10.22
+  Median days: 10.00
+  Minimum days: 1
+  Maximum days: 20
+
+Most borrowed books (by book ID):
+  No book was borrowed more than once in this dataset.
+
+Monthly borrowing trends:
+  2020-01: 17 borrowings
+  2020-02: 13 borrowings
+  2020-03: 16 borrowings
+  2020-04: 10 borrowings
+  2020-05: 16 borrowings
+  2020-06: 17 borrowings
+  2020-07: 16 borrowings
+  2020-08: 13 borrowings
+  2020-09: 13 borrowings
+  2020-10: 16 borrowings
+  2020-11: 17 borrowings
+  2020-12: 12 borrowings
+  2021-01: 23 borrowings
+  2021-02: 12 borrowings
+  2021-03: 11 borrowings
+  2021-04: 8 borrowings
+  2021-05: 17 borrowings
+  2021-06: 13 borrowings
+  2021-07: 20 borrowings
+  2021-08: 12 borrowings
+  2021-09: 15 borrowings
+  2021-10: 15 borrowings
+  2021-11: 12 borrowings
+  2021-12: 17 borrowings
+  2022-01: 16 borrowings
+  2022-02: 9 borrowings
+  2022-03: 20 borrowings
+  2022-04: 13 borrowings
+  2022-05: 11 borrowings
+  2022-06: 26 borrowings
+  2022-07: 20 borrowings
+  2022-08: 22 borrowings
+  2022-09: 17 borrowings
+  2022-10: 19 borrowings
+  2022-11: 23 borrowings
+  2022-12: 16 borrowings
+  2023-01: 12 borrowings
+  2023-02: 13 borrowings
+  2023-03: 18 borrowings
+  2023-04: 16 borrowings
+  2023-05: 24 borrowings
+  2023-06: 14 borrowings
+  2023-07: 24 borrowings
+  2023-08: 19 borrowings
+  2023-09: 11 borrowings
+  2023-10: 23 borrowings
+  2023-11: 18 borrowings
+  2023-12: 10 borrowings
+  2024-01: 13 borrowings
+  2024-02: 9 borrowings
+  2024-03: 12 borrowings
+  2024-04: 21 borrowings
+  2024-05: 10 borrowings
+  2024-06: 16 borrowings
+  2024-07: 11 borrowings
+  2024-08: 14 borrowings
+  2024-09: 23 borrowings
+  2024-10: 9 borrowings
+  2024-11: 24 borrowings
+  2024-12: 16 borrowings
+  2025-01: 20 borrowings
+  2025-02: 9 borrowings
+  2025-03: 22 borrowings
+  2025-04: 6 borrowings

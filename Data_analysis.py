@@ -74,6 +74,33 @@ def main() -> None:
                 ]
             )
 
+    if "book_id" in data.columns:
+        borrow_counts = data["book_id"].dropna().value_counts()
+        most_borrowed = borrow_counts[borrow_counts > 1].head(10)
+        lines.extend(["", "Most borrowed books (by book ID):"])
+        if most_borrowed.empty:
+            lines.append("  No book was borrowed more than once in this dataset.")
+        else:
+            lines.extend(
+                f"  {book_id}: {count} borrowings"
+                for book_id, count in most_borrowed.items()
+            )
+
+    if "borrow_date" in data.columns:
+        monthly = (
+            data.dropna(subset=["borrow_date"])
+            .groupby(data["borrow_date"].dt.to_period("M"))
+            .size()
+        )
+        lines.extend(["", "Monthly borrowing trends:"])
+        if monthly.empty:
+            lines.append("  No valid borrowing dates were available.")
+        else:
+            lines.extend(
+                f"  {month}: {count} borrowings"
+                for month, count in monthly.items()
+            )
+
     REPORT_FILE.parent.mkdir(parents=True, exist_ok=True)
     report = "\n".join(lines) + "\n"
     REPORT_FILE.write_text(report, encoding="utf-8")
