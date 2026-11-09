@@ -43,6 +43,16 @@ The existing `library.db` is included in the project package, so do not run the 
 - `reports/02_data_cleaning.md` — data cleaning notes
 - `MISSING_ITEMS_CHECKLIST.txt` — final classroom checklist
 
+## Submission deliverables
+
+- `deliverables/Library_Availability_Presentation_Final.pptx` — final presentation.
+- `deliverables/Library_Management_Book_Availability_Project_Report.pdf` — print-ready report.
+- `deliverables/Library_Management_Book_Availability_Project_Report.docx` — editable report.
+- `dashboard/screenshots/` — overview and detail screenshots of the integrated dashboard.
+- `Library_Project_Attachments.zip` — source data, cleaned data, scripts, dashboard, database, API, PBIX, screenshots and submission files.
+
+The raw CSV is at `data/raw/library_datasets.csv`; the cleaned CSV is at `data/processed/library_datasets_cleaned.csv`.
+
 ## Existing visualizations
 📊 Library Data Visualizations
 
