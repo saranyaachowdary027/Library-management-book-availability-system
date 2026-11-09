@@ -14,9 +14,27 @@ python Data_visualisation.py
 
 The cleaning script writes `data/processed/library_datasets_cleaned.csv`. Analysis results and generated charts are saved under `reports/`.
 
-## Dashboard
+## Interactive dashboard
 
-The interactive dashboard source is in `dashboard/`. The project also includes its API and SQLite database source. A Power BI `.pbix` file was not supplied; see `MISSING_ITEMS_CHECKLIST.txt`.
+The main integrated Streamlit application is `dashboard/app.py`. It includes five sections: Overview, Live Inventory, Catalogue, Borrow & Return, and Analytics. It reads the SQLite inventory and loan records from the root `library.db`; historical analytics use the cleaned CSV.
+
+To run it from the project root:
+
+```bash
+pip install -r requirements.txt
+streamlit run dashboard/app.py
+```
+
+The supporting dashboard modules are in `dashboard/`, database helpers are in `database/`, and the optional FastAPI backend is in `webapp/backened/`. The repository includes the Power BI report `Dashboard.pbix` as a separate analytics view. It is distinct from the integrated Streamlit application.
+
+For a new local setup without the supplied database, initialize and seed a sample database with:
+
+```bash
+python database/db.py
+python database/seed_books.py
+```
+
+The existing `library.db` is included in the project package, so do not run the sample seeder over it unless you intend to add the sample rows.
 
 ## Project documentation
 
