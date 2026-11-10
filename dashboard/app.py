@@ -1,9 +1,14 @@
+import os
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 from datetime import date, timedelta
 
 import pandas as pd
 import streamlit as st
+from sqlalchemy import create_engine, event, inspect, text
+from sqlalchemy.engine import URL, make_url
+from sqlalchemy.exc import SQLAlchemyError
 
 # -------------------- CONFIG --------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,6 +21,119 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+def secret(name):
+    try:
+        return st.secrets[name]
+    except Exception:
+        return os.environ.get(name)
+
+
+DATABASE_URL = secret("DATABASE_URL")
+APP_PASSWORD = secret("APP_PASSWORD")
+REMOTE_DATABASE = bool(DATABASE_URL)
+
+if DATABASE_URL:
+    db_url = make_url(DATABASE_URL)
+    if db_url.drivername in {"postgres", "postgresql"}:
+        db_url = db_url.set(drivername="postgresql+psycopg")
+    ENGINE = create_engine(
+        db_url,
+        pool_pre_ping=True,
+        pool_size=2,
+        max_overflow=0,
+        connect_args={"sslmode": "require"} if db_url.drivername.startswith("postgresql") else {},
+    )
+else:
+    ENGINE = create_engine(
+        URL.create("sqlite", database=str(DB_PATH)),
+        connect_args={"check_same_thread": False},
+    )
+
+
+if ENGINE.dialect.name == "sqlite":
+    @event.listens_for(ENGINE, "connect")
+    def enable_sqlite_foreign_keys(dbapi_connection, _connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+
+@contextmanager
+def connect():
+    with ENGINE.begin() as conn:
+        yield conn
+
+
+def initialize_database():
+    if REMOTE_DATABASE:
+        with connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS books (
+                    id BIGSERIAL PRIMARY KEY,
+                    isbn TEXT UNIQUE,
+                    title TEXT NOT NULL,
+                    author TEXT NOT NULL,
+                    category TEXT,
+                    total_copies INTEGER NOT NULL DEFAULT 1
+                        CHECK (total_copies >= 0)
+                )
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS loans (
+                    id BIGSERIAL PRIMARY KEY,
+                    book_id BIGINT NOT NULL REFERENCES books(id),
+                    user_id TEXT NOT NULL,
+                    borrow_date TEXT NOT NULL,
+                    due_date TEXT NOT NULL,
+                    return_date TEXT DEFAULT NULL
+                )
+            """))
+
+            book_count = conn.execute(text("SELECT COUNT(*) FROM books")).scalar_one()
+            loan_count = conn.execute(text("SELECT COUNT(*) FROM loans")).scalar_one()
+
+            # Seed an empty hosted database once from the project's included SQLite snapshot.
+            if book_count == 0 and loan_count == 0 and DB_PATH.exists():
+                with sqlite3.connect(DB_PATH) as source:
+                    source.row_factory = sqlite3.Row
+                    books = source.execute("SELECT id,isbn,title,author,category,total_copies FROM books").fetchall()
+                    loans = source.execute("SELECT id,book_id,user_id,borrow_date,due_date,return_date FROM loans").fetchall()
+                for book in books:
+                    conn.execute(text("""
+                        INSERT INTO books (id,isbn,title,author,category,total_copies)
+                        VALUES (:id,:isbn,:title,:author,:category,:total_copies)
+                        ON CONFLICT (id) DO NOTHING
+                    """), dict(book))
+                for loan in loans:
+                    conn.execute(text("""
+                        INSERT INTO loans (id,book_id,user_id,borrow_date,due_date,return_date)
+                        VALUES (:id,:book_id,:user_id,:borrow_date,:due_date,:return_date)
+                        ON CONFLICT (id) DO NOTHING
+                    """), dict(loan))
+                conn.execute(text("""
+                    SELECT setval(pg_get_serial_sequence('books','id'),
+                        GREATEST(COALESCE((SELECT MAX(id) FROM books),0)+1,1), false)
+                """))
+                conn.execute(text("""
+                    SELECT setval(pg_get_serial_sequence('loans','id'),
+                        GREATEST(COALESCE((SELECT MAX(id) FROM loans),0)+1,1), false)
+                """))
+
+if REMOTE_DATABASE:
+    if not APP_PASSWORD:
+        st.error("Hosted editing is locked until APP_PASSWORD is configured in the app's private secrets.")
+        st.stop()
+    if not st.session_state.get("staff_authenticated"):
+        st.title("Library staff sign-in")
+        entered_password = st.text_input("Staff password", type="password")
+        if st.button("Sign in"):
+            if entered_password == APP_PASSWORD:
+                st.session_state["staff_authenticated"] = True
+                st.rerun()
+            st.error("Incorrect password.")
+        st.stop()
 
 st.markdown("""
 <style>
@@ -48,20 +166,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# -------------------- DATABASE --------------------
-def connect():
-    if not DB_PATH.exists():
-        raise FileNotFoundError(f"Database not found: {DB_PATH}")
-
-    conn = sqlite3.connect(DB_PATH, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys=ON")
-    return conn
-
-
 def load_books():
     with connect() as conn:
-        return pd.read_sql_query("""
+        return pd.read_sql_query(text("""
             SELECT
                 b.id AS book_id,
                 b.title,
@@ -76,12 +183,12 @@ def load_books():
                 )) AS available_copies
             FROM books b
             ORDER BY b.title
-        """, conn)
+        """), conn)
 
 
 def load_loans():
     with connect() as conn:
-        return pd.read_sql_query("""
+        return pd.read_sql_query(text("""
             SELECT
                 l.id AS loan_id,
                 l.book_id,
@@ -94,32 +201,23 @@ def load_loans():
             FROM loans l
             LEFT JOIN books b ON b.id = l.book_id
             ORDER BY l.id DESC
-        """, conn)
+        """), conn)
 
 
 def validate_database():
+    initialize_database()
+    inspector = inspect(ENGINE)
     with connect() as conn:
-        tables = {
-            r["name"]
-            for r in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
-        }
+        tables = set(inspector.get_table_names())
 
         if not {"books", "loans"}.issubset(tables):
             raise RuntimeError(
                 "The database must contain 'books' and 'loans' tables."
             )
 
-        book_cols = {
-            r["name"]
-            for r in conn.execute("PRAGMA table_info(books)")
-        }
+        book_cols = {c["name"] for c in inspector.get_columns("books")}
 
-        loan_cols = {
-            r["name"]
-            for r in conn.execute("PRAGMA table_info(loans)")
-        }
+        loan_cols = {c["name"] for c in inspector.get_columns("loans")}
 
         required_books = {
             "id", "title", "author", "category", "total_copies"
@@ -146,6 +244,7 @@ pages = [
     "Overview",
     "Live Inventory",
     "Catalogue",
+    "Add a Book",
     "Borrow & Return",
     "Analytics",
 ]
@@ -191,7 +290,7 @@ try:
 
 except Exception as exc:
     st.error(f"Could not load the library database: {exc}")
-    st.info(f"Database path: {DB_PATH}")
+    st.info("Check the app's database configuration and deployment secrets.")
     st.stop()
 
 
@@ -378,6 +477,38 @@ elif page == "Catalogue":
 
 
 # -------------------- BORROW & RETURN --------------------
+elif page == "Add a Book":
+    st.subheader("➕ Add a Book")
+    st.caption("Add a title and copy count to the shared library catalogue.")
+    with st.form("add_book_form", clear_on_submit=True):
+        title = st.text_input("Book title")
+        author = st.text_input("Author")
+        category = st.text_input("Category")
+        isbn = st.text_input("ISBN (optional)")
+        copies = st.number_input("Total copies", min_value=0, value=1, step=1)
+        submitted_book = st.form_submit_button("Save book")
+        if submitted_book:
+            if not title.strip() or not author.strip():
+                st.error("Enter both a title and an author.")
+            else:
+                try:
+                    with connect() as conn:
+                        conn.execute(text("""
+                            INSERT INTO books (isbn,title,author,category,total_copies)
+                            VALUES (:isbn,:title,:author,:category,:total_copies)
+                        """), {
+                            "isbn": isbn.strip() or None,
+                            "title": title.strip(),
+                            "author": author.strip(),
+                            "category": category.strip() or None,
+                            "total_copies": int(copies),
+                        })
+                    st.session_state["success_message"] = "Book added to the catalogue."
+                    st.rerun()
+                except SQLAlchemyError as exc:
+                    st.error(f"Could not add the book. Check that its ISBN is unique. Details: {exc}")
+
+# -------------------- BORROW & RETURN --------------------
 elif page == "Borrow & Return":
     st.subheader("🔄 Borrow & Return")
 
@@ -451,23 +582,23 @@ elif page == "Borrow & Return":
                         try:
                             with connect() as conn:
                                 book = conn.execute(
-                                    """
+                                    text("""
                                     SELECT total_copies
                                     FROM books
-                                    WHERE id=?
-                                    """,
-                                    (options[selected_label],),
-                                ).fetchone()
+                                    WHERE id=:book_id
+                                    """),
+                                    {"book_id": options[selected_label]},
+                                ).mappings().first()
 
                                 active_count = conn.execute(
-                                    """
+                                    text("""
                                     SELECT COUNT(*)
                                     FROM loans
-                                    WHERE book_id=?
+                                    WHERE book_id=:book_id
                                       AND return_date IS NULL
-                                    """,
-                                    (options[selected_label],),
-                                ).fetchone()[0]
+                                    """),
+                                    {"book_id": options[selected_label]},
+                                ).scalar_one()
 
                                 if (
                                     book is None
@@ -480,7 +611,7 @@ elif page == "Borrow & Return":
 
                                 else:
                                     conn.execute(
-                                        """
+                                        text("""
                                         INSERT INTO loans
                                         (
                                             book_id,
@@ -489,14 +620,14 @@ elif page == "Borrow & Return":
                                             due_date,
                                             return_date
                                         )
-                                        VALUES (?, ?, ?, ?, NULL)
-                                        """,
-                                        (
-                                            options[selected_label],
-                                            borrower_name.strip(),
-                                            borrow_date.isoformat(),
-                                            due_date.isoformat(),
-                                        ),
+                                        VALUES (:book_id, :user_id, :borrow_date, :due_date, NULL)
+                                        """),
+                                        {
+                                            "book_id": options[selected_label],
+                                            "user_id": borrower_name.strip(),
+                                            "borrow_date": borrow_date.isoformat(),
+                                            "due_date": due_date.isoformat(),
+                                        },
                                     )
 
                                     st.session_state[
@@ -505,7 +636,7 @@ elif page == "Borrow & Return":
 
                                     st.rerun()
 
-                        except sqlite3.Error as exc:
+                        except (sqlite3.Error, SQLAlchemyError) as exc:
                             st.error(f"Borrowing failed: {exc}")
 
     # RETURN BOOK
@@ -543,16 +674,16 @@ elif page == "Borrow & Return":
                     try:
                         with connect() as conn:
                             conn.execute(
-                                """
+                                text("""
                                 UPDATE loans
-                                SET return_date=?
-                                WHERE id=?
+                                SET return_date=:return_date
+                                WHERE id=:loan_id
                                   AND return_date IS NULL
-                                """,
-                                (
-                                    return_date.isoformat(),
-                                    return_options[selected_loan],
-                                ),
+                                """),
+                                {
+                                    "return_date": return_date.isoformat(),
+                                    "loan_id": return_options[selected_loan],
+                                },
                             )
 
                         st.session_state[
@@ -561,7 +692,7 @@ elif page == "Borrow & Return":
 
                         st.rerun()
 
-                    except sqlite3.Error as exc:
+                    except (sqlite3.Error, SQLAlchemyError) as exc:
                         st.error(f"Return failed: {exc}")
 
     # LOAN HISTORY

@@ -27,6 +27,10 @@ streamlit run dashboard/app.py
 
 The supporting dashboard modules are in `dashboard/`, database helpers are in `database/`, and the optional FastAPI backend is in `webapp/backened/`. The repository includes the Power BI report `Dashboard.pbix` as a separate analytics view. It is distinct from the integrated Streamlit application.
 
+## Editable hosted app
+
+For a shared online version with saved book and loan changes, use the `live-library-app` branch and `dashboard/app.py`. Follow [DEPLOY_EDITABLE_APP.md](DEPLOY_EDITABLE_APP.md) to connect Streamlit Community Cloud to hosted PostgreSQL. Do not deploy shared write access using only the local SQLite file; hosted local files are not guaranteed to persist.
+
 For a new local setup without the supplied database, initialize and seed a sample database with:
 
 ```bash
