@@ -16,7 +16,9 @@ The cleaning script writes `data/processed/library_datasets_cleaned.csv`. Analys
 
 ## Interactive dashboard
 
-The main integrated Streamlit application is `dashboard/app.py`. It includes five sections: Overview, Live Inventory, Catalogue, Borrow & Return, and Analytics. It reads the SQLite inventory and loan records from the root `library.db`; historical analytics use the cleaned CSV.
+**Live dashboard:** [Open Library Management Dashboard](https://saranyaachowdary027.github.io/Library-management-book-availability-system/)
+
+The hosted dashboard is available at the link above. The main integrated local Streamlit application is `dashboard/app.py`. It includes five sections: Overview, Live Inventory, Catalogue, Borrow & Return, and Analytics. It reads the SQLite inventory and loan records from the root `library.db`; historical analytics use the cleaned CSV.
 
 To run it from the project root:
 
